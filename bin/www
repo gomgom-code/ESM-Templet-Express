@@ -1,0 +1,56 @@
+#!/usr/bin/env node
+// bin/www — ESM 버전 (app.js가 import/export를 쓰는 경우 필수)
+
+// 1) ESM import로 교체
+import app from '../app.js';
+import debugLib from 'debug';
+import http from 'http';
+
+// 2) debug 네임스페이스 설정
+const debug = debugLib('n-example2:server');
+
+// 3) 포트 설정 (환경변수 → 기본 3000)
+const port = normalizePort(process.env.PORT || '3000');
+app.set('port', port);
+
+// 4) HTTP 서버 생성 + 리스닝
+const server = http.createServer(app);
+server.listen(port);
+server.on('error', onError);
+server.on('listening', onListening);
+
+// ────────────────────────────────────────────
+// 아래 함수들은 WebStorm 기본 템플릿 그대로 유지
+// 단, ESM 문법에 맞게 약간 정리
+// ────────────────────────────────────────────
+function normalizePort(val) {
+    const portNum = parseInt(val, 10);
+    if (Number.isNaN(portNum)) return val;  // named pipe
+    if (portNum >= 0) return portNum;       // port number
+    return false;
+}
+
+function onError(error) {
+    if (error.syscall !== 'listen') throw error;
+    const bind = typeof port === 'string' ? 'Pipe ' + port : 'Port ' + port;
+
+    switch (error.code) {
+        case 'EACCES':
+            console.error(bind + ' requires elevated privileges');
+            process.exit(1);
+            break;
+        case 'EADDRINUSE':
+            console.error(bind + ' is already in use');
+            process.exit(1);
+            break;
+        default:
+            throw error;
+    }
+}
+
+function onListening() {
+    const addr = server.address();
+    const bind = typeof addr === 'string' ? 'pipe ' + addr : 'port ' + addr.port;
+    debug('Listening on ' + bind);
+    console.log(`✅ Server running on ${bind}`);
+}
